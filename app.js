@@ -27,10 +27,21 @@
         let account = getAccount();
         if (account) return account;
 
-        if (account) return account;
+        try {
+            // ✅ Force silent SSO via redirect
+            await msalInstance.loginRedirect({
+                scopes: ["User.Read"],
+                prompt: "none"
+            });
 
-        showLoginScreen();
-        return null;
+            return null; // browser will redirect
+        } catch (err) {
+            console.log("Silent redirect failed:", err);
+
+            // fallback → show login screen
+            showLoginScreen();
+            return null;
+        }
     }
 
     function showLoginScreen() {
