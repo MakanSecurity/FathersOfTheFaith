@@ -23,23 +23,10 @@
         return accounts.length > 0 ? accounts[0] : null;
     }
 
-    async function trySilentLogin() {
-        try {
-            const response = await msalInstance.ssoSilent({
-                scopes: ["User.Read"]
-            });
-            return response.account;
-        } catch (err) {
-            console.log("Silent login failed:", err);
-            return null;
-        }
-    }
-
     async function initAuth() {
         let account = getAccount();
         if (account) return account;
 
-        account = await trySilentLogin();
         if (account) return account;
 
         showLoginScreen();
