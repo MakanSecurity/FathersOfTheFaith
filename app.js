@@ -15,30 +15,54 @@
 
     // ── AUTH SETUP ─────────────────────────────
 
-    async function initAuth() {
-        let account = getAccount();
+    async function trySilentLogin() {
+        try {
+            const account = getAccount();
 
-        if (!account) {
-            showLoginScreen();
+            if (account) return account;
+
+            const response = await msalInstance.ssoSilent({
+                scopes: ["User.Read"],
+                loginHint: account?.username // optional
+            });
+
+            return response.account;
+
+        } catch (err) {
+            console.log("Silent login failed:", err);
             return null;
         }
-
-        return account;
     }
+
+    async function initAuth() {
+        // 1. Check cached account
+        let account = getAccount();
+        if (account) return account;
+
+        // 2. Try silent SSO (this is the magic)
+        account = await trySilentLogin();
+        if (account) return account;
+
+        // 3. Fallback to login screen
+        showLoginScreen();
+        return null;
+    }
+
+
 
     async function login() {
-    try {
-        const response = await msalInstance.loginPopup({
-            scopes: ["User.Read"]
-        });
+        try {
+            const response = await msalInstance.loginPopup({
+                scopes: ["User.Read"]
+            });
 
-        console.log("Logged in:", response.account);
-        return response.account;
+            console.log("Logged in:", response.account);
+            return response.account;
 
-    } catch (err) {
-        console.error("Login error:", err);
+        } catch (err) {
+            console.error("Login error:", err);
+        }
     }
-}
 
     function showLoginScreen() {
         document.body.innerHTML = `
@@ -122,8 +146,8 @@
     }
 
     // ── Fetch directory listing ──
-const FILENAMES = await fetch('/docs/files.json')
-    .then(res => res.json());
+    const FILENAMES = await fetch('/docs/files.json')
+        .then(res => res.json());
 
     // ── Build document objects ──
     const documents = FILENAMES.map(filename => {
