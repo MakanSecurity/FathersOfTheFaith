@@ -43,6 +43,7 @@
 
         // 3. Fallback to login screen
         showLoginScreen();
+        document.body.style.display = "block";
         return null;
     }
 
@@ -117,6 +118,10 @@
     if (!user) return;
 
     addAuthUI(user);
+
+    document.getElementById("loading")?.remove();
+
+    document.body.style.display = "block";
 
     // ── VIEW FUNCTIONS ─────────────────────────
 

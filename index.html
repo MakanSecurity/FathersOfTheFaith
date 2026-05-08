@@ -6,10 +6,19 @@
     <title>Document Study App</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+
+<!-- ✅ Hide everything initially -->
+<body style="display: none;">
+
+    <!-- ✅ Loading screen -->
+    <div id="loading" style="text-align:center; margin-top:100px;">
+        <h2>Loading...</h2>
+        <p>Signing you in...</p>
+    </div>
+
     <header>
         <div id="userInfo"></div>
-        <h1>📚Fathers of the Faith</h1>
+        <h1>📚 Fathers of the Faith</h1>
         <p>Search, sort, and filter Church Father documents</p>
     </header>
 
@@ -45,7 +54,9 @@
         </div>
 
     </main>
+
     <script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
     <script type="module" src="app.js"></script>
+
 </body>
 </html>
