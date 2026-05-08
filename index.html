@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Study App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div id="userInfo"></div>
+        <h1>📚Fathers of the Faith</h1>
+        <p>Search, sort, and filter Church Father documents</p>
+    </header>
+
+    <main>
+
+        <div class="controls" id="controls">
+            <input type="text" id="searchInput" placeholder="Search by title or author…" aria-label="Search documents">
+
+            <select id="sortSelect" aria-label="Sort documents">
+                <option value="title-asc">Title (A–Z)</option>
+                <option value="title-desc">Title (Z–A)</option>
+                <option value="author-asc">Author (A–Z)</option>
+                <option value="author-desc">Author (Z–A)</option>
+                <option value="century-asc">Century (oldest first)</option>
+                <option value="century-desc">Century (newest first)</option>
+            </select>
+
+            <select id="filterCentury" aria-label="Filter by century">
+                <option value="">All centuries</option>
+            </select>
+
+            <button id="clearBtn" type="button">Clear filters</button>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="resultsView">
+            <div id="results" role="list" aria-label="Document list"></div>
+        </div>
+
+        <!-- READER VIEW -->
+        <div id="readerView" style="display:none;">
+            <div id="contentContainer"></div>
+        </div>
+
+    </main>
+    <script src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
