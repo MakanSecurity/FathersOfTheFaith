@@ -13,19 +13,22 @@
 
     const msalInstance = new msal.PublicClientApplication(msalConfig);
 
+    // ✅ IMPORTANT: process redirect login (required for My Apps)
     await msalInstance.handleRedirectPromise();
 
-
     // ── AUTH SETUP ─────────────────────────────
+
+    function getAccount() {
+        const accounts = msalInstance.getAllAccounts();
+        return accounts.length > 0 ? accounts[0] : null;
+    }
 
     async function trySilentLogin() {
         try {
             const response = await msalInstance.ssoSilent({
                 scopes: ["User.Read"]
             });
-
             return response.account;
-
         } catch (err) {
             console.log("Silent login failed:", err);
             return null;
@@ -33,34 +36,14 @@
     }
 
     async function initAuth() {
-        // 1. Check cached account
         let account = getAccount();
         if (account) return account;
 
-        // 2. Try silent SSO (this is the magic)
         account = await trySilentLogin();
         if (account) return account;
 
-        // 3. Fallback to login screen
         showLoginScreen();
-        document.body.style.display = "block";
         return null;
-    }
-
-
-
-    async function login() {
-        try {
-            const response = await msalInstance.loginRedirect({
-                scopes: ["User.Read"]
-            });
-
-            console.log("Logged in:", response.account);
-            return response.account;
-
-        } catch (err) {
-            console.error("Login error:", err);
-        }
     }
 
     function showLoginScreen() {
@@ -69,37 +52,17 @@
             <h2>Sign in required</h2>
             <button id="loginBtn">Login with Microsoft</button>
         </div>
-    `;
+        `;
 
         document.getElementById("loginBtn").onclick = () => {
             msalInstance.loginRedirect({ scopes: ["User.Read"] });
         };
 
-    }
-
-    function getAccount() {
-        const accounts = msalInstance.getAllAccounts();
-        return accounts.length > 0 ? accounts[0] : null;
-    }
-
-    async function ensureLoggedIn() {
-        let account = getAccount();
-
-        if (!account) {
-            account = await login();
-        }
-
-        if (!account) {
-            document.body.innerHTML = "<h2>Authentication required</h2>";
-            throw new Error("User not authenticated");
-        }
-
-        console.log("Logged in as:", account.username);
-        return account;
+        // ✅ show UI AFTER replacing content
+        document.body.style.display = "block";
     }
 
     function addAuthUI(account) {
-        // Optional UI injection (safe even if not pre-existing)
         const header = document.querySelector("header");
 
         const userDiv = document.createElement("div");
@@ -113,14 +76,14 @@
         header.appendChild(userDiv);
     }
 
-    // 🔐 Force login BEFORE anything else
+    // ✅ AUTH FLOW
     const user = await initAuth();
     if (!user) return;
 
     addAuthUI(user);
 
+    // ✅ remove loading + show app
     document.getElementById("loading")?.remove();
-
     document.body.style.display = "block";
 
     // ── VIEW FUNCTIONS ─────────────────────────
@@ -148,11 +111,10 @@
         };
     }
 
-    // ── Fetch directory listing ──
+    // ── Fetch documents ──
     const FILENAMES = await fetch('/docs/files.json')
         .then(res => res.json());
 
-    // ── Build document objects ──
     const documents = FILENAMES.map(filename => {
         const meta = parseFilename(filename);
 
@@ -164,12 +126,10 @@
         };
     });
 
-    // ── Populate century filter ──
+    // ── Populate filter ──
     function populateCenturyFilter() {
         const centuries = [...new Set(
-            documents
-                .map(d => d.century?.trim())
-                .filter(Boolean)
+            documents.map(d => d.century?.trim()).filter(Boolean)
         )].sort();
 
         filterCentury.innerHTML = `<option value="">All centuries</option>`;
@@ -219,7 +179,7 @@
 
     // ── Load document ──
     async function loadDocumentContent(filename) {
-        const response = await fetch(`/docs/${filename}`);
+        const response = await fetch(`/docs/${encodeURIComponent(filename)}`);
         const content = await response.text();
 
         const doc = documents.find(d => d.filename === filename);
@@ -237,7 +197,7 @@
         };
     }
 
-    // ── Escape HTML ──
+    // ── Escape HTML (fixed) ──
     function escapeHtml(str) {
         return str
             .replaceAll("&", "&amp;")
@@ -291,7 +251,7 @@
         updateResults();
     });
 
-    // ── Init ──
+    // ── Init UI ──
     showListView();
     populateCenturyFilter();
     updateResults();
