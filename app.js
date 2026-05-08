@@ -13,17 +13,15 @@
 
     const msalInstance = new msal.PublicClientApplication(msalConfig);
 
+    await msalInstance.handleRedirectPromise();
+
+
     // ── AUTH SETUP ─────────────────────────────
 
     async function trySilentLogin() {
         try {
-            const account = getAccount();
-
-            if (account) return account;
-
             const response = await msalInstance.ssoSilent({
-                scopes: ["User.Read"],
-                loginHint: account?.username // optional
+                scopes: ["User.Read"]
             });
 
             return response.account;
@@ -52,7 +50,7 @@
 
     async function login() {
         try {
-            const response = await msalInstance.loginPopup({
+            const response = await msalInstance.loginRedirect({
                 scopes: ["User.Read"]
             });
 
@@ -72,10 +70,10 @@
         </div>
     `;
 
-        document.getElementById("loginBtn").onclick = async () => {
-            const account = await login();
-            if (account) location.reload();
+        document.getElementById("loginBtn").onclick = () => {
+            msalInstance.loginRedirect({ scopes: ["User.Read"] });
         };
+
     }
 
     function getAccount() {
